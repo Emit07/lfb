@@ -11,6 +11,10 @@ MEDIA_COLOUR     = "33"
 TEXTS_COLOUR     = "0"
 PROGRAMS_COLOUR  = "36"
 
+EDITOR = "vim"
+IMAGE_PROGRAM = "macfeh"
+PDF_READER = "zathura"
+
 IMAGE_EXTENSIONS     = ("png", "jpg", "jpeg")
 VECTOR_EXTENSIONS    = ("svg", "svgz", "ai")
 MUSIC_EXTENSIONS     = ("mp3", "wav")
@@ -31,6 +35,3 @@ SCRIPT_EXTENSIONS    = ("sh", "bash", "bat")
 CONFIG_EXTENSIONS    = ("conf", "cfg", "toml")
 
 
-EDITOR = "vim"
-IMAGE_PROGRAM = "macfeh"
-PDF_READER = "zathura"
