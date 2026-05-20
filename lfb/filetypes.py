@@ -1,6 +1,6 @@
 import os
-import config
-import icons
+import lfb.config as config
+import lfb.icons as icons
 
 _EXT_MAP: dict[str, tuple[str, str]] = {}
 

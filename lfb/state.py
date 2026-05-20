@@ -1,5 +1,5 @@
 import os
-import config
+import lfb.config as config
 
 class ViewState:
     def __init__(self):

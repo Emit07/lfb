@@ -16,29 +16,31 @@ pip install click
 
 ## Executing
 
-This program only works from the terminal.
-
-to use run with
+You can manually build and install it with the following commands:
 
 ```
-python3 lfb.py
+python -m build
+pip install dist/lfb-0.1.0-py3-none-any.whl
 ```
 
-Until I make the program installable, I have it aliased in my bashrc
+You can also execute it manually
 
 ```
-alias lfb="~/Documents/lfb/lfb.py"
+python3 lfb/main.py
 ```
 
 ## TODOs
 
-* [ ] Fix scrolling view
+* [x] Fix scrolling view
 * [ ] finish moving over commands that are in the keymap
 * [ ] improve integrity in filesystem interactions
-* [ ] move the keymap so that users can define it, make a command map as well so users do not get direct access
+* [x] move the keymap so that users can define it, make a command map as well so users do not get direct access
 * [ ] do the same thing with the icons, though this doesnt need a map since they do not have access to App class
 * [ ] Seperate the icons, colors, and extensions into different files or at least a seperate file from the user config
 * [ ] refactor some code and clean it up
 * [ ] Move the size calculating functions and formatting functions from filesystem to renderer
 * [ ] Restructure rendering library, preferabbly transfer it to curses or something from scratch (no click)
 * [ ] Comment code and write docs
+* [ ] make it so when selecting a file you see the size of it and all its contents. Right now whenever you selecte a file it just says 4K 
+* [ ] Fix the arrow hints when scrolling (right now the bottom one is always on display and the top one is never on display)
+* [ ] Fix slow rendering on startup

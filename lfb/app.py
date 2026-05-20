@@ -2,11 +2,11 @@ import os
 import sys
 import time
 import click
-import config
-from state import ViewState
-from filesystem import FileSystem
-from renderer import Renderer
-from keymap import load_keymap
+import lfb.config as config
+from lfb.state import ViewState
+from lfb.filesystem import FileSystem
+from lfb.renderer import Renderer
+from lfb.keymap import load_keymap
 
 
 class App:
@@ -30,10 +30,12 @@ class App:
         )
 
         self.render.hide_cursor()
-        self._redraw(draw_footer = False)
 
         if _keymap_warning:
+            self._redraw(draw_footer = False)
             self.render.log(_keymap_warning, "yellow")
+        else:
+            self._redraw()
 
         while True:
             try:
@@ -83,8 +85,9 @@ class App:
             s.min_view -= 1
             s.max_view -= 1
             s.display_index += 1
-        self.render.draw_files(s, self._files())
-        self.render.draw_footer(s, self._files(), "", "")
+        files = self._files()
+        self.render.draw_files(s, files)
+        self.render.draw_footer(s, files, *self._footer_strings(files))
 
     def _scroll_down(self):
         s     = self.state
@@ -98,7 +101,7 @@ class App:
             s.min_view += 1
             s.display_index -= 1
         self.render.draw_files(s, files)
-        self.render.draw_footer(s, files, "", "")
+        self.render.draw_footer(s, files, *self._footer_strings(files))
 
     def _shift_down(self):
         """Scroll viewport down, keeping cursor visually pinned (Ctrl-E)."""
