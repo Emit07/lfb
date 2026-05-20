@@ -1,7 +1,14 @@
 
+KEYMAP_CONFIG = "~/Documents/olfb/config/keymap.toml"
+
 SHOW_HIDDEN_FILES = False
+DRAW_ICONS = False
 DATE_FORMAT = "%d/%m/%Y %H:%M"
 HOME_TILDA = True
+
+EDITOR = "vim"
+IMAGE_PROGRAM = "feh"
+PDF_READER = "zathura"
 
 DIRECTORY_DISPLAY_COLOUR = "34;4"
 FOOTER_COLOUR    = "34"
@@ -10,10 +17,6 @@ FILE_COLOUR      = "0"
 MEDIA_COLOUR     = "33"
 TEXTS_COLOUR     = "0"
 PROGRAMS_COLOUR  = "36"
-
-EDITOR = "vim"
-IMAGE_PROGRAM = "macfeh"
-PDF_READER = "zathura"
 
 IMAGE_EXTENSIONS     = ("png", "jpg", "jpeg")
 VECTOR_EXTENSIONS    = ("svg", "svgz", "ai")

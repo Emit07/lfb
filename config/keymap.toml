@@ -1,0 +1,36 @@
+[keys]
+# Movement
+"↑"  = "scroll_up"
+"k"  = "scroll_up"
+"↓"  = "scroll_down"
+"j"  = "scroll_down"
+"^Y" = "shift_up"
+"^E" = "shift_down"
+"g"  = "go_top"
+"G"  = "go_bottom"
+"H"  = "view_top"
+"M"  = "view_middle"
+"L"  = "view_bottom"
+
+# Navigation
+'\n'  = "forward"
+"l"   = "forward"
+"h"   = "back"
+
+# Misc
+"e"   = "open_editor"
+" "   = "toggle_selected"
+"DEL" = "toggle_hidden"
+"q"   = "exit"
+
+[combos]
+"m,d" = "make_dir"
+"m,f" = "touch_file"
+"c,w" = "rename"
+"y,y" = ["copy", "copy"]
+"d,d" = ["copy", "cut"]
+"p,p" = "paste"
+"r,m" = "delete"
+"c,d" = ["cd", "~"]
+"c,f" = ["cd", "~/.config"]
+"d,s" = ["cd", "~/Documents"]
