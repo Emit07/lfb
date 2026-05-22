@@ -25,23 +25,15 @@ ACTION_MAP: dict[str, str] = {
     "copy":            "_copy",
     "paste":           "_paste",
     "delete":          "_delete",
-    "cd":              "_reset_and_chdir",
+    "cd":              "_chdir",
 }
-
-ACTIONS_WITH_ARG = {"copy", "cd"}
 
 SPECIAL_KEYS: dict[str, int] = {
-    "↑":   65,
-    "↓":   66,
-    "DEL": 127,
-    "\\n": 13,
-    "^A":  1,  "^B":  2,  "^C":  3,  "^D":  4,  "^E":  5,
-    "^F":  6,  "^G":  7,  "^H":  8,  "^I":  9,  "^J":  10,
-    "^K":  11, "^L":  12, "^M":  13, "^N":  14, "^O":  15,
-    "^P":  16, "^Q":  17, "^R":  18, "^S":  19, "^T":  20,
-    "^U":  21, "^V":  22, "^W":  23, "^X":  24, "^Y":  25,
-    "^Z":  26,
+    "↑": 65, "↓": 66, "DEL": 127, "\\n": 13,
+    **{f"^{c}": i for i, c in enumerate("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1)},
 }
+
+DEFAULT_PATH = Path("~/.config/lfb/keymap.toml")
 
 
 def _parse_key(s: str) -> int:
@@ -49,74 +41,48 @@ def _parse_key(s: str) -> int:
         return SPECIAL_KEYS[s]
     if len(s) == 1:
         return ord(s)
-    raise ValueError(
-        f"Unrecognised key {s!r} — use a single character, "
-        f"an arrow (↑ ↓), DEL, or a ctrl sequence like ^Y."
-    )
+    raise ValueError(f"Unrecognised key {s!r}")
 
 
-def _resolve_action(app, action_name: str, arg: str | None = None) -> Callable:
+def _bind(app, action_name: str, arg: str | None) -> Callable:
     if action_name not in ACTION_MAP:
-        raise ValueError(
-            f"Unknown action: {action_name!r}. "
-            f"Run with --list-actions to see valid options."
-        )
-
+        raise ValueError(f"Unknown action: {action_name!r}")
     method = getattr(app, ACTION_MAP[action_name])
-
-    if arg is not None:
-        if action_name not in ACTIONS_WITH_ARG:
-            raise ValueError(f"Action {action_name!r} does not accept arguments.")
-        if action_name == "cd":
-            path = os.path.expanduser(arg)
-            return lambda: method(path)
-        return lambda: method(arg)
-
-    return method
+    if arg is None:
+        return method
+    path = os.path.expanduser(arg) if action_name == "cd" else arg
+    return lambda: method(path)
 
 
 def load_keymap(
     app,
-    config_path: Path | None = None,
+    config_path: Path | str | None = None,
 ) -> tuple[dict[int, Callable], dict[tuple[int, int], Callable], str | None]:
-    if config_path is None:
-        config_path = Path(os.environ.get(
-            "FILEBROWSER_CONFIG",
-            Path.home() / ".config" / "filebrowser" / "keymap.toml"
-        ))
 
-    config_path = Path(config_path).expanduser()
-
-    warning: str | None = None
-    default_path = Path.home() / ".config" / "lfb" / "keymap.toml"
+    path    = Path(config_path).expanduser() if config_path else DEFAULT_PATH.expanduser()
+    warning = None
 
     try:
-        with open(config_path, "rb") as f:
-            raw = tomllib.load(f)
+        raw = tomllib.loads(path.read_text())
     except FileNotFoundError:
-        warning = f"Config file {config_path} not found, using defaults at {default_path}"
-        with open(default_path, "rb") as f:
-            raw = tomllib.load(f)
-    except tomllib.TOMLDecodeError as e:
-        raise ValueError(f"Invalid TOML in {config_path}: {e}")
+        default = DEFAULT_PATH.expanduser()
+        warning = f"Config {path} not found, using defaults at {default}"
+        raw     = tomllib.loads(default.read_text())
 
-    keymap: dict[int, Callable] = {}
-    for key_str, value in raw.get("keys", {}).items():
-        key = _parse_key(key_str)
-        action_name, arg = (value[0], value[1]) if isinstance(value, list) else (value, None)
-        keymap[key] = _resolve_action(app, action_name, arg)
+    def unpack(v):
+        return (v[0], v[1]) if isinstance(v, list) else (v, None)
 
-    combo_map: dict[tuple[int, int], Callable] = {}
-    for combo_str, value in raw.get("combos", {}).items():
-        k1, k2 = (_parse_key(k) for k in combo_str.split(","))
-        action_name, arg = (value[0], value[1]) if isinstance(value, list) else (value, None)
-        combo_map[(k1, k2)] = _resolve_action(app, action_name, arg)
+    keymap = {
+        _parse_key(k): _bind(app, *unpack(v))
+        for k, v in raw.get("keys", {}).items()
+    }
+
+    combo_map = {
+        tuple(_parse_key(k) for k in combo.split(",")): _bind(app, *unpack(v))
+        for combo, v in raw.get("combos", {}).items()
+    }
 
     return keymap, combo_map, warning
-
-
-
-
 
 
 

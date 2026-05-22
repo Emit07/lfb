@@ -36,6 +36,7 @@ python3 lfb/main.py
 * [ ] improve integrity in filesystem interactions
 * [x] move the keymap so that users can define it, make a command map as well so users do not get direct access
 * [ ] do the same thing with the icons, though this doesnt need a map since they do not have access to App class
+* [x] Fix loading flash
 * [ ] Seperate the icons, colors, and extensions into different files or at least a seperate file from the user config
 * [ ] refactor some code and clean it up
 * [ ] Move the size calculating functions and formatting functions from filesystem to renderer
@@ -44,3 +45,5 @@ python3 lfb/main.py
 * [ ] make it so when selecting a file you see the size of it and all its contents. Right now whenever you selecte a file it just says 4K 
 * [ ] Fix the arrow hints when scrolling (right now the bottom one is always on display and the top one is never on display)
 * [ ] Fix slow rendering on startup
+* [ ] fix magic numbers especially on the rendering side of things
+* [ ] fix _viewbottom and jumps and all that and magic numbers

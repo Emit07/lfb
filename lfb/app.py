@@ -10,11 +10,6 @@ from lfb.keymap import load_keymap
 
 
 class App:
-    """
-    Owns the event loop. Reads keypresses, dispatches to commands.
-    Updates ViewState; delegates drawing to Renderer, I/O to FileSystem.
-    """
-
     def __init__(self):
         self.state  = ViewState()
         self.fs     = FileSystem()
@@ -43,8 +38,6 @@ class App:
             except KeyboardInterrupt:
                 self._exit()
 
-    # ── Rendering helpers ────────────────────────────────────────────────────
-
     def _redraw(self, draw_footer: bool = True):
         files    = self.fs.list_dir(self.state.show_hidden)
         cwd      = self.fs.pretty_cwd(config.HOME_TILDA)
@@ -68,7 +61,7 @@ class App:
             return None
         return files[self.state.selected_index]
 
-    def _reset_and_chdir(self, path: str):
+    def _chdir(self, path: str):
         self.fs.chdir(path)
         self.state.reset_viewport()
         self._redraw()
@@ -221,7 +214,7 @@ class App:
         if not f:
             return
         if os.path.isdir(f):
-            self._reset_and_chdir(f)
+            self._chdir(f)
         else:
             ext = f.rsplit(".", 1)[-1] if "." in f else ""
             if ext in config.IMAGE_EXTENSIONS:

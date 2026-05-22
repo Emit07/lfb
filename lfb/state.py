@@ -22,7 +22,7 @@ class ViewState:
         self.selected_index = 0
         self.display_index = 0
         self.min_view = 0
-        self.max_view = term_height - 6
+        self.max_view = term_height - 5
 
     def page_height(self) -> int:
         return os.get_terminal_size()[1] - 6

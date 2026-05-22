@@ -1,17 +1,13 @@
 # renderer.py
 import os
-import time
+import sys
 import lfb.config as config
 import lfb.icons as icons
 import lfb.filetypes as filetypes
 from lfb.state import ViewState
 
-class Renderer:
-    """
-    Draws the UI. Reads ViewState; never writes to it.
-    All terminal escape codes live here and nowhere else.
-    """
 
+class Renderer:
     LOG_COLOURS: dict[str, str] = {
         "red":     "31",
         "green":   "32",
@@ -25,26 +21,43 @@ class Renderer:
 
     def __init__(self, state: ViewState):
         self.state = state
+        self._buf: list[str] = []
+
+    # ── Buffer helpers ───────────────────────────────────────────────────────
+
+    def _write(self, s: str):
+        self._buf.append(s)
+
+    def _flush(self):
+        sys.stdout.write("".join(self._buf))
+        sys.stdout.flush()
+        self._buf.clear()
+
+    # ── Primitives ───────────────────────────────────────────────────────────
 
     def clear(self):
-        print("\033[H\033[J", end="")
+        sys.stdout.write("\033[H\033[J") 
+        # TODO fix this
+        # self._write("\033[H\033[J")
 
     def move(self, x: int, y: int):
-        print(f"\033[{y};{x}H", end="")
+        self._write(f"\033[{y};{x}H")
 
     def hide_cursor(self):
-        print("\x1b[?25l", end="")
+        sys.stdout.write("\x1b[?25l")
+        sys.stdout.flush()
 
     def show_cursor(self):
-        print("\x1b[?25h", end="")
+        sys.stdout.write("\x1b[?25h")
+        sys.stdout.flush()
 
-    def coloured(self, text: str, code: str):
-        print(f"\033[{code}m{text}\033[0m")
+    def _coloured(self, text: str, code: str) -> str:
+        return f"\033[{code}m{text}\033[0m"
 
+    # ── Composite draw calls ─────────────────────────────────────────────────
 
     def draw_all(self, state: ViewState, files: list[str], cwd: str,
                  size_str: str, mtime_str: str, display_footer: bool = True):
-        """Redraws everything. Pass pre-computed strings to keep this pure."""
         self.clear()
         self.draw_header(cwd)
         self.draw_scroll_hint_top(state)
@@ -52,36 +65,39 @@ class Renderer:
         self.draw_scroll_hint_bottom(state, files)
         if display_footer:
             self.draw_footer(state, files, size_str, mtime_str)
+        self._flush()
 
     def draw_header(self, pretty_cwd: str):
-        self.move(0, 0)
-        self.coloured("\033[K" + pretty_cwd, config.DIRECTORY_DISPLAY_COLOUR)
+        self.move(0, 1)
+        self._write(self._coloured("\033[K" + pretty_cwd, config.DIRECTORY_DISPLAY_COLOUR))
 
     def draw_scroll_hint_top(self, state: ViewState):
         if not config.DRAW_ICONS:
             return
         self.move(0, 2)
-        print("\033[K" + (icons.ARROW_UP if state.min_view > 0 else ""))
+        self._write("\033[K" + (icons.ARROW_UP if state.min_view > 0 else ""))
 
     def draw_scroll_hint_bottom(self, state: ViewState, files: list[str]):
         if not config.DRAW_ICONS:
             return
         term_height = os.get_terminal_size()[1]
         self.move(0, term_height - 3)
-        print("\033[K" + (icons.ARROW_DOWN if len(files) > state.max_view else ""))
+        self._write("\033[K" + (icons.ARROW_DOWN if len(files) > state.max_view else ""))
 
     def draw_files(self, state: ViewState, files: list[str]):
         visible     = files[state.min_view: state.max_view]
         term_height = os.get_terminal_size()[1]
-        max_rows    = term_height - 6 if config.DRAW_ICONS else term_height - 5
+        max_rows    = term_height - 4 if config.DRAW_ICONS else term_height - 4
         start_row   = 3
 
         for i in range(max_rows):
             self.move(0, start_row + i)
             if i < len(visible):
-                self._draw_file_row(visible[i], i, state)
+                self._write(self._draw_file_row(visible[i], i, state))
             else:
-                print("\033[K", end="")
+                self._write("\033[K")
+
+        self._flush()
 
     def draw_footer(self, state: ViewState, files: list[str],
                     size_str: str, mtime_str: str):
@@ -94,14 +110,16 @@ class Renderer:
         if files:
             total = len(files)
             pos   = state.selected_index + 1
-            self.coloured(
+            self._write(self._coloured(
                 f"\033[K{pos}/{total} {mtime_str} {size_str}",
                 config.FOOTER_COLOUR,
-            )
+            ))
         else:
-            self.coloured("0/0", config.FOOTER_COLOUR)
-    
-    def _draw_file_row(self, filename: str, row: int, state: ViewState):
+            self._write(self._coloured("0/0", config.FOOTER_COLOUR))
+
+        self._flush()
+
+    def _draw_file_row(self, filename: str, row: int, state: ViewState) -> str:
         icon, icon_colour, file_colour = filetypes.resolve(filename)
         is_dir    = os.path.isdir(filename)
         is_cursor = (state.display_index == row)
@@ -112,25 +130,18 @@ class Renderer:
         suffix = "/" if is_dir else ""
 
         term_width = os.get_terminal_size()[0]
-        if config.DRAW_ICONS:
-            max_width = term_width - 4  # marker + icon + space + suffix
-        else:
-            max_width = term_width - 2  # marker + suffix
-
+        max_width  = term_width - 4 if config.DRAW_ICONS else term_width - 2
         display_name = self._truncate(filename, max_width - len(suffix)) + suffix
 
-        if config.DRAW_ICONS:
-            name_part = (
-                f"\033[30;47m{display_name}\033[0m" if is_cursor
-                else f"\033[{file_colour}m{display_name}\033[0m"
-            )
-            print(f"{marker}\033[K\033[{icon_colour}m{icon} \033[0m{name_part}")
+        if is_cursor:
+            name_part = f"\033[30;47m{display_name}\033[0m"
         else:
-            name_part = (
-                f"\033[30;47m{display_name}\033[0m" if is_cursor
-                else f"\033[{file_colour}m{display_name}\033[0m"
-            )
-            print(f"{marker}\033[0m\033[K{name_part}")
+            name_part = f"\033[{file_colour}m{display_name}\033[0m"
+
+        if config.DRAW_ICONS:
+            return f"{marker}\033[K\033[{icon_colour}m{icon} \033[0m{name_part}"
+        else:
+            return f"{marker}\033[0m\033[K{name_part}"
 
     def _truncate(self, name: str, max_width: int) -> str:
         if len(name) <= max_width:
@@ -139,19 +150,8 @@ class Renderer:
 
     def log(self, message: str, colour: str = "white"):
         code = self.LOG_COLOURS.get(colour, "0")
-
         _, term_height = os.get_terminal_size()
-
-        self.move(1, term_height)   # column 1, last row
-
-        print(
-            f"\033[K\033[{code}m{message}\033[0m",
-            end="",
-            flush=True
-        )
-        self.coloured(
-            f"\033[K{pos}/{total} {mtime_str} {size_str}",
-            code,
-        )
-
+        self.move(0, term_height - 1)
+        self._write(f"\033[K\033[{code}m{message}\033[0m")
+        self._flush()
         self.state._log_active = True
