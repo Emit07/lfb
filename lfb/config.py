@@ -1,5 +1,5 @@
 
-KEYMAP_CONFIG = "~/Documents/olfb/config/keymap.toml"
+KEYMAP_CONFIG = "~/Documents/lfb/config/keymap.toml"
 
 SHOW_HIDDEN_FILES = False
 DRAW_ICONS = False

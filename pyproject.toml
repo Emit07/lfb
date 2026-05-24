@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [project.scripts]
-lfb = "lfb.main:main"
+lfb = "lfb.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

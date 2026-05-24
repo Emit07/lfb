@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import threading
 import click
 import lfb.config as config
 from lfb.state import ViewState
@@ -17,6 +18,9 @@ class App:
 
         self._clipboard: str | list[str] = ""
         self._clipboard_mode: str = ""   # "copy" | "cut"
+
+        # Cache: absolute_path -> formatted size string (directories only)
+        self._size_cache: dict[str, str] = {}
 
         keymap_path = config.KEYMAP_CONFIG or "~/.config/lfb/keymap.toml"
 
@@ -43,12 +47,7 @@ class App:
         cwd      = self.fs.pretty_cwd(config.HOME_TILDA)
         size_str = mtime_str = ""
         if files:
-            f         = files[self.state.selected_index]
-            size_str  = self.fs.format_size(os.path.getsize(f))
-            mtime_str = time.strftime(
-                config.DATE_FORMAT,
-                time.gmtime(self.fs.file_stat(f).st_mtime)
-            )
+            size_str, mtime_str = self._footer_strings(files)
 
         self.render.draw_all(self.state, files, cwd, size_str, mtime_str, draw_footer)
 
@@ -138,9 +137,39 @@ class App:
         if not files:
             return "", ""
         f         = files[self.state.selected_index]
-        size_str  = self.fs.format_size(os.path.getsize(f))
         mtime_str = time.strftime(config.DATE_FORMAT, time.gmtime(self.fs.file_stat(f).st_mtime))
-        return size_str, mtime_str
+
+        if not os.path.isdir(f):
+            # Files are always instant
+            return self.fs.format_size(os.path.getsize(f)), mtime_str
+
+        abs_path = os.path.realpath(f)
+
+        if abs_path in self._size_cache:
+            return self._size_cache[abs_path], mtime_str
+
+        # Not cached yet — show placeholder and compute in background
+        self._compute_dir_size_async(abs_path, files, self.state.selected_index)
+        return "...", mtime_str
+
+    def _compute_dir_size_async(self, abs_path: str, files: list[str], index: int):
+        """Spawn a daemon thread to compute dir size; update footer when done."""
+        def _work():
+            size_str = self.fs.format_size(self.fs.getsize(abs_path))
+            self._size_cache[abs_path] = size_str
+
+            # Only update the footer if the user is still on the same entry
+            if self.state.selected_index == index:
+                current_files = self._files()
+                self.render.draw_footer(
+                    self.state, current_files,
+                    size_str,
+                    time.strftime(config.DATE_FORMAT,
+                                  time.gmtime(self.fs.file_stat(abs_path).st_mtime)),
+                )
+
+        t = threading.Thread(target=_work, daemon=True)
+        t.start()
 
     def _go_top(self):
         s = self.state

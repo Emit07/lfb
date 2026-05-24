@@ -42,8 +42,11 @@ python3 lfb/main.py
 * [ ] Move the size calculating functions and formatting functions from filesystem to renderer
 * [ ] Restructure rendering library, preferabbly transfer it to curses or something from scratch (no click)
 * [ ] Comment code and write docs
-* [ ] make it so when selecting a file you see the size of it and all its contents. Right now whenever you selecte a file it just says 4K 
+* [x] make it so when selecting a file you see the size of it and all its contents. Right now whenever you selecte a file it just says 4KB
+* [ ] When you exit out of a directory the size says 4KB, but normally it says its actual size
+* [x] If the directories are large the program stops working until it recursively calculates the size
 * [ ] Fix the arrow hints when scrolling (right now the bottom one is always on display and the top one is never on display)
 * [ ] Fix slow rendering on startup
 * [ ] fix magic numbers especially on the rendering side of things
 * [ ] fix _viewbottom and jumps and all that and magic numbers
+

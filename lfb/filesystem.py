@@ -1,6 +1,7 @@
 import os
 import shutil
 import math
+from pathlib import Path
 
 class FileSystem:
     """
@@ -17,6 +18,31 @@ class FileSystem:
         dirs  = sorted(f for f in files if os.path.isdir(f))
         nondirs = sorted(f for f in files if not os.path.isdir(f))
         return dirs + nondirs
+    
+    # TODO introduce future compatibility with pathlib
+    def getsize(self, path: str | Path) -> int:
+        path = Path(path)
+
+        if path.is_file():
+            return os.path.getsize(path)
+
+        if path.is_dir():
+            total = 0
+
+            for root, _, files in os.walk(path):
+                for file in files:
+                    file_path = Path(root) / file
+
+                    try:
+                        total += os.path.getsize(file_path)
+                    except (FileNotFoundError, PermissionError):
+                        pass
+            
+            # TODO should it be total + 4KB?
+            return total
+
+        raise FileNotFoundError(f"{path} does not exist")
+
     
     # TODO Move to renderer
     def format_size(self, size_bytes: int) -> str:
