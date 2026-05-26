@@ -1,8 +1,6 @@
 # lfb
 
-lfb (light file browser) is a terminal file browser. The whole program is a mess as of now. In the feature I will remove the need for external dependencies, tidy up the code, make an actual readme, add documentation, and change the name.
-
-[WARNING] the source for this program is a mess, look at it at your own risk.
+lfb (light file browser) is a terminal file browser. All the code is in the process of being refactored. It is a bit messy and I am working on cleaning it up. I would like to change the name so I am open to suggestions.
 
 ## Dependencies
 
@@ -46,7 +44,7 @@ python3 lfb/main.py
 * [ ] When you exit out of a directory the size says 4KB, but normally it says its actual size
 * [x] If the directories are large the program stops working until it recursively calculates the size
 * [ ] Fix the arrow hints when scrolling (right now the bottom one is always on display and the top one is never on display)
-* [ ] Fix slow rendering on startup
+* [x] Fix slow rendering on startup
 * [ ] fix magic numbers especially on the rendering side of things
 * [ ] fix _viewbottom and jumps and all that and magic numbers
 
