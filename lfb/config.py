@@ -1,40 +1,57 @@
+import tomllib
+from pathlib import Path
 
-KEYMAP_CONFIG = "~/Documents/lfb/config/keymap.toml"
-
-SHOW_HIDDEN_FILES = False
-DRAW_ICONS = False
-DATE_FORMAT = "%d/%m/%Y %H:%M"
-HOME_TILDA = True
-
-EDITOR = "vim"
-IMAGE_PROGRAM = "feh"
-PDF_READER = "zathura"
-
-DIRECTORY_DISPLAY_COLOUR = "34;4"
-FOOTER_COLOUR    = "34"
-DIRECTORY_COLOUR = "32"
-FILE_COLOUR      = "0"
-MEDIA_COLOUR     = "33"
-TEXTS_COLOUR     = "0"
-PROGRAMS_COLOUR  = "36"
-
-IMAGE_EXTENSIONS     = ("png", "jpg", "jpeg")
-VECTOR_EXTENSIONS    = ("svg", "svgz", "ai")
-MUSIC_EXTENSIONS     = ("mp3", "wav")
-VIDEO_EXTENSIONS     = ("mp4", "mkv", "mov", "webm")
-ADVANCED_TEXT        = ("md", "ms", "me", "tex", "doc", "docx", "rst")
-
-C_EXTENSIONS         = ("c", "cats", "h", "idc", "w")
-CPP_EXTENSIONS       = ("cpp", "c++", "cc", "cp", "cxx", "h", "h++", "hh", "hpp", "hxx", "inc", "inl", "ipp", "tcc", "tpp")
-HASKELL_EXTENSIONS   = ("hs", "lhs", "hsc")
-HTML_EXTENSIONS      = ("html", "htm", "hl", "inc", "st", "xht", "xhtml")
-JSON_EXTENSIONS      = ("json")
-JAVA_EXTENSIONS      = ("java")
-JS_EXTENSIONS        = ("js", "_js", "bones", "es", "es6", "frag", "gs", "jake", "jsb", "jscad", "jsfl", "jsm", "jss", "njs", "pac", "sjs", "ssjs", "sublime-build", "sublime-commands", "sublime-completions", "sublime-keymap", "sublime-macro", "sublime-menu", "sublime-mousemap", "sublime-project", "sublime-settings", "sublime-theme", "sublime-workspace", "sublime_metrics", "sublime_session", "xsjs", "xsjslib")
-PYTHON_EXTENSIONS    = ("py")
-REACT_EXTENSIONS     = ("jsx")
-RUBY_EXTENSIONS      = ("rb", "rbw", "rbx", "ru", "ruby")
-SCRIPT_EXTENSIONS    = ("sh", "bash", "bat")
-CONFIG_EXTENSIONS    = ("conf", "cfg", "toml")
+CONFIG_DIR = Path("~/.config/lfb")
+USER_CONFIG_PATH = CONFIG_DIR / "config.toml"
+USER_KEYMAP_PATH = CONFIG_DIR / "keymap.toml"
 
 
+def _defaults_dir() -> Path:
+    try:
+        import importlib.resources as ir
+
+        return Path(ir.files("lfb") / "defaults")
+    except (ImportError, ModuleNotFoundError, TypeError):
+        return Path(__file__).resolve().parent / "defaults"
+
+
+def load_toml(name: str, path: Path | str | None = None) -> tuple[dict, Path, str | None]:
+    target = Path(path).expanduser() if path else (CONFIG_DIR / name).expanduser()
+
+    if target.is_file():
+        return tomllib.loads(target.read_text()), target, None
+
+    bundled = _defaults_dir() / name
+    if bundled.is_file():
+        warning = f"{target} not found, using bundled defaults"
+        return tomllib.loads(bundled.read_text()), bundled, warning
+
+    raise FileNotFoundError(f"Could not find {name} at {target}")
+
+
+_data, _config_path, CONFIG_WARNING = load_toml("config.toml")
+
+_paths = _data.get("paths", {})
+_display = _data.get("display", {})
+_programs = _data.get("programs", {})
+_colours = _data.get("colours", {})
+
+_keymap_override = _paths.get("keymap", "")
+KEYMAP_PATH = Path(_keymap_override).expanduser() if _keymap_override else USER_KEYMAP_PATH.expanduser()
+
+SHOW_HIDDEN_FILES = _display.get("show_hidden_files", False)
+DRAW_ICONS = _display.get("draw_icons", False)
+DATE_FORMAT = _display.get("date_format", "%d/%m/%Y %H:%M")
+HOME_TILDA = _display.get("home_tilda", True)
+
+EDITOR = _programs.get("editor", "vim")
+IMAGE_PROGRAM = _programs.get("image_program", "feh")
+PDF_READER = _programs.get("pdf_reader", "zathura")
+
+DIRECTORY_DISPLAY_COLOUR = _colours.get("directory_display", "34;4")
+FOOTER_COLOUR = _colours.get("footer", "34")
+DIRECTORY_COLOUR = _colours.get("directory", "32")
+FILE_COLOUR = _colours.get("file", "0")
+MEDIA_COLOUR = _colours.get("media", "33")
+TEXTS_COLOUR = _colours.get("texts", "0")
+PROGRAMS_COLOUR = _colours.get("programs", "36")

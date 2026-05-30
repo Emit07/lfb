@@ -1,0 +1,22 @@
+[paths]
+keymap = "~/Documents/lfb/config/keymap.toml"
+
+[display]
+show_hidden_files = false
+draw_icons = false
+date_format = "%d/%m/%Y %H:%M"
+home_tilda = true
+
+[programs]
+editor = "vim"
+image_program = "feh"
+pdf_reader = "zathura"
+
+[colours]
+directory_display = "34;4"
+footer = "34"
+directory = "32"
+file = "0"
+media = "33"
+texts = "0"
+programs = "36"

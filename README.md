@@ -1,50 +1,76 @@
-# lfb
+<span align="center">
+	<h1 align="center">lfb</h1>
+	<p align="center">light file browser</p>
+</span>
 
-lfb (light file browser) is a terminal file browser. All the code is in the process of being refactored. It is a bit messy and I am working on cleaning it up. I would like to change the name so I am open to suggestions.
+lfb aims to be a fast, simple, and highly configurable file browser while taking advantage of Python's flexibility. lfb has snappy terminal UI with its own rendering engine as well as configurable Vim-inspired macros and icons.
 
-## Dependencies
 
-There is one dependency being used right now.
+> **Note**
+>
+> lfb is still under active development. More features, cleanup, documentation, and configuration options are planned.
 
-To install it use
+## Screenshot
 
+![lfb screenshot](media/example.png)
+
+## Features
+
+- Vim-inspired navigation
+- Open files with external programs
+- Copy, move, rename, and delete files
+- Configurable keybindings
+- User configuration file
+- Optional file icons
+- Hidden file toggling
+
+## Installation
+
+Build from source:
+
+```bash
+git clone https://github.com/Emit07/lfb
+cd lfb
+pip install .
 ```
-pip install click
+
+To run it:
+
+```bash
+lfb
 ```
 
-## Executing
+## Configuration
 
-You can manually build and install it with the following commands:
+User configuration files live in `~/.config/lfb/`:
 
-```
-python -m build
-pip install dist/lfb-0.1.0-py3-none-any.whl
-```
-
-You can also execute it manually
-
-```
-python3 lfb/main.py
+```text
+~/.config/lfb/config.toml
+~/.config/lfb/keymap.toml
 ```
 
-## TODOs
+If a file is missing, lfb falls back to the bundled defaults shipped with the package.
 
-* [x] Fix scrolling view
-* [ ] finish moving over commands that are in the keymap
-* [ ] improve integrity in filesystem interactions
-* [x] move the keymap so that users can define it, make a command map as well so users do not get direct access
-* [ ] do the same thing with the icons, though this doesnt need a map since they do not have access to App class
-* [x] Fix loading flash
-* [ ] Seperate the icons, colors, and extensions into different files or at least a seperate file from the user config
-* [ ] refactor some code and clean it up
-* [ ] Move the size calculating functions and formatting functions from filesystem to renderer
-* [ ] Restructure rendering library, preferabbly transfer it to curses or something from scratch (no click)
-* [ ] Comment code and write docs
-* [x] make it so when selecting a file you see the size of it and all its contents. Right now whenever you selecte a file it just says 4KB
-* [ ] When you exit out of a directory the size says 4KB, but normally it says its actual size
-* [x] If the directories are large the program stops working until it recursively calculates the size
-* [ ] Fix the arrow hints when scrolling (right now the bottom one is always on display and the top one is never on display)
-* [x] Fix slow rendering on startup
-* [ ] fix magic numbers especially on the rendering side of things
-* [ ] fix _viewbottom and jumps and all that and magic numbers
-* [ ] add a destructor for the classes so everything is tied up even if it crashes/the window closes
+## Design Goals
+
+lfb is built around a few simple ideas:
+
+- Stay lightweight and responsive.
+- Keep startup and rendering fast.
+- Make it customizable.
+- Remain simple and easy to extend
+
+## Roadmap
+
+- Remove the Click dependency
+- Improve documentation
+- Refactor and clean up the codebase
+- Expand configuration options
+- Improve rendering performance
+- Rename the project
+
+## Contributing
+
+Issues, bug reports, and pull requests are welcome.
+
+The codebase is still evolving, so expect occasional refactors and breaking changes.

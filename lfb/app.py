@@ -4,6 +4,7 @@ import time
 import threading
 import click
 import lfb.config as config
+import lfb.extensions as extensions
 from lfb.state import ViewState
 from lfb.filesystem import FileSystem
 from lfb.renderer import Renderer
@@ -22,7 +23,7 @@ class App:
         # Cache: absolute_path -> formatted size string (directories only)
         self._size_cache: dict[str, str] = {}
 
-        keymap_path = config.KEYMAP_CONFIG or "~/.config/lfb/keymap.toml"
+        keymap_path = config.KEYMAP_PATH
 
         self._keymap, self._combo_map, _keymap_warning = load_keymap(
             self, keymap_path
@@ -30,9 +31,11 @@ class App:
 
         self.render.hide_cursor()
 
-        if _keymap_warning:
+        warnings = [w for w in (config.CONFIG_WARNING, _keymap_warning) if w]
+        if warnings:
             self._redraw(draw_footer = False)
-            self.render.log(_keymap_warning, "yellow")
+            for warning in warnings:
+                self.render.log(warning, "yellow")
         else:
             self._redraw()
 
@@ -246,11 +249,11 @@ class App:
             self._chdir(f)
         else:
             ext = f.rsplit(".", 1)[-1] if "." in f else ""
-            if ext in config.IMAGE_EXTENSIONS:
+            if ext in extensions.IMAGE_EXTENSIONS:
                 os.system(f"{config.IMAGE_PROGRAM} '{f}'")
             elif ext == "pdf":
                 os.system(f"{config.PDF_READER} '{f}' &")
-            elif ext in (*config.VIDEO_EXTENSIONS, *config.MUSIC_EXTENSIONS):
+            elif ext in (*extensions.VIDEO_EXTENSIONS, *extensions.MUSIC_EXTENSIONS):
                 os.system(f"mpv '{f}' &")
             else:
                 self._open_editor(f)
@@ -380,8 +383,8 @@ class App:
 
     def _handle_key(self, raw: str):
         if self.state._log_active:
-            self._redraw()
             self.state._log_active = False
+            self._redraw()
 
         c    = ord(raw[0]) if len(raw) == 1 else ord(raw[-1])
         prev = self.state.previous_key

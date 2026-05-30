@@ -99,10 +99,17 @@ class Renderer:
 
         self._flush()
 
+    def _clear_log_area(self):
+        """Clear the footer line and any wrapped spillover on the row below."""
+        _, term_height = os.get_terminal_size()
+        self.move(0, term_height - 1)
+        self._write("\033[K")
+        self.move(0, term_height)
+        self._write("\033[K")
+
     def draw_footer(self, state: ViewState, files: list[str],
                     size_str: str, mtime_str: str):
         if self.state._log_active:
-            self.state._log_active = False
             return
 
         _, term_height = os.get_terminal_size()
@@ -117,6 +124,8 @@ class Renderer:
         else:
             self._write(self._coloured("0/0", config.FOOTER_COLOUR))
 
+        self.move(0, term_height)
+        self._write("\033[K")
         self._flush()
 
     def _draw_file_row(self, filename: str, row: int, state: ViewState) -> str:
@@ -150,8 +159,11 @@ class Renderer:
 
     def log(self, message: str, colour: str = "white"):
         code = self.LOG_COLOURS.get(colour, "0")
-        _, term_height = os.get_terminal_size()
+        term_width, term_height = os.get_terminal_size()
+        if len(message) > term_width:
+            message = message[: term_width - 3] + "..."
+        self._clear_log_area()
         self.move(0, term_height - 1)
-        self._write(f"\033[K\033[{code}m{message}\033[0m")
+        self._write(f"\033[{code}m{message}\033[0m")
         self._flush()
         self.state._log_active = True

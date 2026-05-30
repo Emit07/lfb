@@ -17,3 +17,6 @@ lfb = "lfb.__main__:main"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["lfb*"]
+
+[tool.setuptools.package-data]
+"lfb.defaults" = ["*.toml"]

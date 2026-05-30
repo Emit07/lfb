@@ -1,7 +1,8 @@
 import os
-import tomllib
 from pathlib import Path
 from typing import Callable
+
+from lfb.config import load_toml, USER_KEYMAP_PATH
 
 ACTION_MAP: dict[str, str] = {
     "scroll_up":       "_scroll_up",
@@ -33,7 +34,7 @@ SPECIAL_KEYS: dict[str, int] = {
     **{f"^{c}": i for i, c in enumerate("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1)},
 }
 
-DEFAULT_PATH = Path("~/.config/lfb/keymap.toml")
+DEFAULT_PATH = USER_KEYMAP_PATH
 
 
 def _parse_key(s: str) -> int:
@@ -59,15 +60,8 @@ def load_keymap(
     config_path: Path | str | None = None,
 ) -> tuple[dict[int, Callable], dict[tuple[int, int], Callable], str | None]:
 
-    path    = Path(config_path).expanduser() if config_path else DEFAULT_PATH.expanduser()
-    warning = None
-
-    try:
-        raw = tomllib.loads(path.read_text())
-    except FileNotFoundError:
-        default = DEFAULT_PATH.expanduser()
-        warning = f"Config {path} not found, using defaults at {default}"
-        raw     = tomllib.loads(default.read_text())
+    path = Path(config_path).expanduser() if config_path else USER_KEYMAP_PATH.expanduser()
+    raw, _, warning = load_toml("keymap.toml", path)
 
     def unpack(v):
         return (v[0], v[1]) if isinstance(v, list) else (v, None)
