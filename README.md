@@ -47,4 +47,4 @@ python3 lfb/main.py
 * [x] Fix slow rendering on startup
 * [ ] fix magic numbers especially on the rendering side of things
 * [ ] fix _viewbottom and jumps and all that and magic numbers
-
+* [ ] add a destructor for the classes so everything is tied up even if it crashes/the window closes
