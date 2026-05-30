@@ -1,7 +1,4 @@
-<span align="center">
-	<h1 align="center">lfb</h1>
-	<p align="center">light file browser</p>
-</span>
+# lfb
 
 lfb aims to be a fast, simple, and highly configurable file browser while taking advantage of Python's flexibility. lfb has snappy terminal UI with its own rendering engine as well as configurable Vim-inspired macros and icons.
 
@@ -10,7 +7,7 @@ lfb aims to be a fast, simple, and highly configurable file browser while taking
 >
 > lfb is still under active development. More features, cleanup, documentation, and configuration options are planned.
 
-## Screenshot
+## Example
 
 ![lfb screenshot](media/example.png)
 
