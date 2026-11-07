@@ -60,9 +60,7 @@ class Renderer:
                  size_str: str, mtime_str: str, display_footer: bool = True):
         self.clear()
         self.draw_header(cwd)
-        self.draw_scroll_hint_top(state)
         self.draw_files(state, files)
-        self.draw_scroll_hint_bottom(state, files)
         if display_footer:
             self.draw_footer(state, files, size_str, mtime_str)
         self._flush()
@@ -85,17 +83,17 @@ class Renderer:
         self._write("\033[K" + (icons.ARROW_DOWN if len(files) > state.max_view else ""))
 
     def draw_files(self, state: ViewState, files: list[str]):
-        visible     = files[state.min_view: state.max_view]
-        term_height = os.get_terminal_size()[1]
-        max_rows    = term_height - 4 if config.DRAW_ICONS else term_height - 4
-        start_row   = 3
+        visible   = files[state.min_view: state.max_view]
+        start_row = 3
 
-        for i in range(max_rows):
+        self.draw_scroll_hint_top(state)
+        for i in range(state.page_height()):
             self.move(0, start_row + i)
             if i < len(visible):
                 self._write(self._draw_file_row(visible[i], i, state))
             else:
                 self._write("\033[K")
+        self.draw_scroll_hint_bottom(state, files)
 
         self._flush()
 

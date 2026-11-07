@@ -19,6 +19,7 @@ ACTION_MAP: dict[str, str] = {
     "open_editor":     "_open_editor",
     "toggle_selected": "_toggle_selected",
     "toggle_hidden":   "_toggle_hidden",
+    "toggle_icons":    "_toggle_icons",
     "exit":            "_exit",
     "make_dir":        "_make_dir",
     "touch_file":      "_touch_file",

@@ -200,11 +200,8 @@ class App:
         s     = self.state
         files = self._files()
 
-        if s.min_view != 0:
-            s.display_index = 2
-        else:
-            s.display_index  = 0
-            s.selected_index = s.min_view + s.display_index
+        s.display_index  = 2 if s.min_view else 0
+        s.selected_index = s.min_view + s.display_index
 
         self.render.draw_files(s, files)
         self.render.draw_footer(s, files, *self._footer_strings(files))
@@ -213,14 +210,8 @@ class App:
         s     = self.state
         files = self._files()
 
-        files_length = len(self.fs.list_dir(s.show_hidden))
-
-        if files_length < s.max_view:
-            s.display_index  = int(files_length / 2)
-            s.selected_index = int(files_length / 2)
-        else:
-            s.display_index  = int((os.get_terminal_size()[1] - 6) / 2)
-            s.selected_index = s.min_view + s.display_index
+        s.display_index  = (min(s.max_view, len(files)) - s.min_view) // 2
+        s.selected_index = s.min_view + s.display_index
 
         self.render.draw_files(s, files)
         self.render.draw_footer(s, files, *self._footer_strings(files))
@@ -229,14 +220,11 @@ class App:
         s     = self.state
         files = self._files()
 
-        files_length = len(self.fs.list_dir(s.show_hidden))
-
-        if files_length < s.max_view:
-            s.display_index  = files_length - 1
-            s.selected_index = s.display_index
+        if s.max_view >= len(files):
+            s.display_index = len(files) - 1 - s.min_view
         else:
-            s.display_index  = os.get_terminal_size()[1] - 9
-            s.selected_index = s.max_view - 3
+            s.display_index = s.page_height() - 3
+        s.selected_index = s.min_view + s.display_index
 
         self.render.draw_files(s, files)
         self.render.draw_footer(s, files, *self._footer_strings(files))
@@ -379,6 +367,10 @@ class App:
     def _toggle_hidden(self):
         self.state.show_hidden = not self.state.show_hidden
         self.state.reset_viewport()
+        self._redraw()
+
+    def _toggle_icons(self):
+        config.DRAW_ICONS = not config.DRAW_ICONS
         self._redraw()
 
     def _handle_key(self, raw: str):

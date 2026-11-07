@@ -3,7 +3,7 @@ keymap = "~/Documents/lfb/config/keymap.toml"
 
 [display]
 show_hidden_files = false
-draw_icons = false
+draw_icons = true
 date_format = "%d/%m/%Y %H:%M"
 home_tilda = true
 
